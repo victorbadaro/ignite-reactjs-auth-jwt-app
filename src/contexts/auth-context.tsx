@@ -26,4 +26,4 @@ function AuthProvider({ children }: AuthProviderProps) {
 	return <AuthContext.Provider value={{ signIn, isAuthenticated }}>{children}</AuthContext.Provider>;
 }
 
-export { AuthProvider };
+export { AuthContext, AuthProvider };
