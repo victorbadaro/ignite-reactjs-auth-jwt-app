@@ -1,10 +1,10 @@
-import { AuthContext } from '@/contexts/auth-context';
-import { type FormEvent, useContext, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { type FormEvent, useState } from 'react';
 
 import styles from '@/styles/Home.module.css';
 
 export default function Home() {
-	const { signIn } = useContext(AuthContext);
+	const { signIn } = useAuth();
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 
