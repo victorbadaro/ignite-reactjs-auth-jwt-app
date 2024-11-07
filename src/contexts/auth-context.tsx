@@ -1,6 +1,6 @@
 import { api } from '@/services/api';
 import Router from 'next/router';
-import { parseCookies, setCookie } from 'nookies';
+import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import { type ReactNode, createContext, useEffect, useState } from 'react';
 
 type User = {
@@ -26,6 +26,13 @@ type AuthProviderProps = {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
+function signOut() {
+	destroyCookie(undefined, 'ignite-reactjs-auth-jwt-app.token');
+	destroyCookie(undefined, 'ignite-reactjs-auth-jwt-app.refreshToken');
+
+	Router.push('/');
+}
+
 function AuthProvider({ children }: AuthProviderProps) {
 	const [user, setUser] = useState<User>(null);
 	const isAuthenticated = !!user;
@@ -34,11 +41,16 @@ function AuthProvider({ children }: AuthProviderProps) {
 		const { 'ignite-reactjs-auth-jwt-app.token': token } = parseCookies();
 
 		if (token) {
-			api.get('/me').then((response) => {
-				const { email, permissions, roles } = response.data;
+			api
+				.get('/me')
+				.then((response) => {
+					const { email, permissions, roles } = response.data;
 
-				setUser({ email, permissions, roles });
-			});
+					setUser({ email, permissions, roles });
+				})
+				.catch(() => {
+					signOut();
+				});
 		}
 	}, []);
 
@@ -77,4 +89,4 @@ function AuthProvider({ children }: AuthProviderProps) {
 	return <AuthContext.Provider value={{ signIn, isAuthenticated, user }}>{children}</AuthContext.Provider>;
 }
 
-export { AuthContext, AuthProvider };
+export { AuthContext, AuthProvider, signOut };
