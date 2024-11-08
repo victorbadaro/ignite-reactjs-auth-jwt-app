@@ -1,9 +1,8 @@
 import { useAuth } from '@/hooks/use-auth';
-import type { GetServerSideProps } from 'next';
 import { type FormEvent, useState } from 'react';
 
 import styles from '@/styles/Home.module.css';
-import { parseCookies } from 'nookies';
+import { withSSRGuest } from '@/utils/with-ssr-guest';
 
 export default function Home() {
 	const { signIn } = useAuth();
@@ -31,19 +30,8 @@ export default function Home() {
 	);
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const cookies = parseCookies(ctx);
-
-	if (cookies['ignite-reactjs-auth-jwt-app.token']) {
-		return {
-			redirect: {
-				destination: '/dashboard',
-				permanent: false
-			}
-		};
-	}
-
+export const getServerSideProps = withSSRGuest(async () => {
 	return {
 		props: {}
 	};
-};
+});
