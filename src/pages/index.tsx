@@ -1,8 +1,8 @@
 import { useAuth } from '@/hooks/use-auth';
+import { withSSRGuest } from '@/utils/with-ssr-guest';
 import { type FormEvent, useState } from 'react';
 
 import styles from '@/styles/Home.module.css';
-import { withSSRGuest } from '@/utils/with-ssr-guest';
 
 export default function Home() {
 	const { signIn } = useAuth();
