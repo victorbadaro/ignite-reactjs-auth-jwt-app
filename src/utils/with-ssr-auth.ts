@@ -1,5 +1,6 @@
+import { AuthTokenError } from '@/services/errors/auth-token-error';
 import type { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
-import { parseCookies } from 'nookies';
+import { destroyCookie, parseCookies } from 'nookies';
 
 export function withSSRAuth<P>(fn: GetServerSideProps<P>): GetServerSideProps {
 	return async (ctx: GetServerSidePropsContext): Promise<GetServerSidePropsResult<P>> => {
@@ -14,6 +15,20 @@ export function withSSRAuth<P>(fn: GetServerSideProps<P>): GetServerSideProps {
 			};
 		}
 
-		return await fn(ctx);
+		try {
+			return await fn(ctx);
+		} catch (error) {
+			if (error instanceof AuthTokenError) {
+				destroyCookie(ctx, 'ignite-reactjs-auth-jwt-app.token');
+				destroyCookie(ctx, 'ignite-reactjs-auth-jwt-app.refreshToken');
+
+				return {
+					redirect: {
+						destination: '/',
+						permanent: false
+					}
+				};
+			}
+		}
 	};
 }
