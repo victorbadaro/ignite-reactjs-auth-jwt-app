@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/use-auth';
+import { useCan } from '@/hooks/use-can';
 import { setupAPIClient } from '@/services/api';
 import { api } from '@/services/api-client';
 import { withSSRAuth } from '@/utils/with-ssr-auth';
@@ -6,6 +7,9 @@ import { useEffect } from 'react';
 
 export default function Dashboard() {
 	const { user } = useAuth();
+	const userCanSeeMetrics = useCan({
+		roles: ['administrator', 'editor']
+	});
 
 	useEffect(() => {
 		api
@@ -14,7 +18,13 @@ export default function Dashboard() {
 			.catch((error) => console.log(error));
 	}, []);
 
-	return <h1>Dashboard: {user?.email}</h1>;
+	return (
+		<>
+			<h1>Dashboard: {user?.email}</h1>
+
+			{userCanSeeMetrics && <div>Métricas</div>}
+		</>
+	);
 }
 
 export const getServerSideProps = withSSRAuth(async (ctx) => {
