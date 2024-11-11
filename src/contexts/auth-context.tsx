@@ -16,6 +16,7 @@ type SignInCredentials = {
 
 type AuthContextData = {
 	signIn: (credentials: SignInCredentials) => Promise<void>;
+	signOut: () => void;
 	user: User;
 	isAuthenticated: boolean;
 };
@@ -26,9 +27,13 @@ type AuthProviderProps = {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
+let authChannel: BroadcastChannel;
+
 function signOut() {
 	destroyCookie(undefined, 'ignite-reactjs-auth-jwt-app.token');
 	destroyCookie(undefined, 'ignite-reactjs-auth-jwt-app.refreshToken');
+
+	authChannel.postMessage('singOut');
 
 	Router.push('/');
 }
@@ -36,6 +41,20 @@ function signOut() {
 function AuthProvider({ children }: AuthProviderProps) {
 	const [user, setUser] = useState<User>(null);
 	const isAuthenticated = !!user;
+
+	useEffect(() => {
+		authChannel = new BroadcastChannel('auth');
+
+		authChannel.onmessage = (message) => {
+			switch (message.data) {
+				case 'signOut':
+					signOut();
+					break;
+				default:
+					break;
+			}
+		};
+	}, []);
 
 	useEffect(() => {
 		const { 'ignite-reactjs-auth-jwt-app.token': token } = parseCookies();
@@ -79,14 +98,13 @@ function AuthProvider({ children }: AuthProviderProps) {
 			});
 
 			api.defaults.headers.Authorization = `Bearer ${token}`;
-
 			Router.push('/dashboard');
 		} catch (error) {
 			console.log(error);
 		}
 	}
 
-	return <AuthContext.Provider value={{ signIn, isAuthenticated, user }}>{children}</AuthContext.Provider>;
+	return <AuthContext.Provider value={{ signIn, signOut, isAuthenticated, user }}>{children}</AuthContext.Provider>;
 }
 
 export { AuthContext, AuthProvider, signOut };
